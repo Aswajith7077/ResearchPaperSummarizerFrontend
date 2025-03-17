@@ -1,5 +1,5 @@
 import {Textarea} from "@/components/ui/textarea.tsx";
-import {useRef, useState} from "react";
+import React, {ChangeEvent, useCallback, useRef, useState} from "react";
 import {FileUpload} from "@/components/ui/file-upload.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {IoSend} from "react-icons/io5";
@@ -16,7 +16,7 @@ const Chat = () => {
     const [file, setFile] = useState<File[]>();
     const [question, setQuestion] = useState<string>('');
     const ref = useRef<HTMLTextAreaElement>(null);
-    const {mutate} = useApiMutation(API_ENDPOINTS.ASK_QUESTION_ENDPOINT, REQUEST_METHODS.POST);
+    const {mutate} = useApiMutation<MessageType,string>(API_ENDPOINTS.ASK_QUESTION_ENDPOINT, REQUEST_METHODS.POST);
 
 
     const [messages, setMessage] = useState<MessageType[]>([]);
@@ -35,7 +35,7 @@ const Chat = () => {
         })
         console.log(request)
         mutate(request, {
-            onSuccess: (data) => {
+            onSuccess: (data:string) => {
                 console.log(data)
                 const ai_message:MessageType = {
                     question:data.toString(),
@@ -51,22 +51,30 @@ const Chat = () => {
         });
     }
 
-
-    const handleEnter = (e) => {
-        if (e.key !== "Enter") return;
-        e.preventDefault();
-        handleQuestionMutation();
-        e.target.value = "";
-    }
-
     const clearInput = () => {
         if (ref.current) ref.current.value = "";
     };
 
 
-    const handleTextChange = (e) => {
-        e.target.value ? setQuestion(e.target.value) : setQuestion(prev => prev);
-    }
+    const handleEnter = useCallback(
+        (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+            if (!event || event.key !== "Enter") return;
+            event.preventDefault();
+            handleQuestionMutation();
+            clearInput();
+        },
+        [handleQuestionMutation, clearInput] // Dependencies
+    );
+
+
+
+
+    const handleTextChange = useCallback(
+        (e:ChangeEvent<HTMLTextAreaElement>) => {
+            setQuestion(prev => e.target.value ? e.target.value : prev);
+        },
+        []
+    )
 
 
     return <div className={'flex flex-row border  w-full p-5 gap-5'}>
@@ -81,7 +89,7 @@ const Chat = () => {
 
             <div className={'flex flex-row items-center gap-5'}>
                 <Textarea placeholder={'Type Something'} className={'w-[90%] text-base resize-none'} maxLength={200} rows={5} ref={ref}
-                          onKeyDown={handleEnter} onChange={handleTextChange}/>
+                          onKeyDown={(e) => handleEnter(e)} onChange={handleTextChange}/>
                 <Button className={'rounded-2xl pl-5 cursor-pointer'} onClick={() => {
                     handleQuestionMutation();
                     clearInput();
