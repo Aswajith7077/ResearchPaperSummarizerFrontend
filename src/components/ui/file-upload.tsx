@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useRef, useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import { motion } from "framer-motion";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
@@ -36,9 +36,12 @@ export const FileUpload = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (newFiles: File[]) => {
-    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
-    onChange && onChange(newFiles);
+    const result = new Set([...files,...newFiles]);
+    setFiles([...result]);
   };
+  useEffect(() => {
+    onChange && onChange(files);
+  },[files])
 
   const handleClick = () => {
     fileInputRef.current?.click();

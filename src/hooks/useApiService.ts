@@ -1,15 +1,11 @@
-import { decrypt, encrypt } from "@/algorithms/crypto";
-import { API_ENDPOINTS, BASE_URL, getEndPoint } from "@/constants/api.endpoint";
-import { ELOCAL_STORAGE, REQUEST_METHODS } from "@/constants/api.enum";
-import { LoginResponseType } from "@/types/auth.type";
-import {
-    useMutation,
-    UseMutationResult,
-    useQuery,
-    UseQueryResult
-} from "@tanstack/react-query";
-import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import { toast } from "sonner";
+import {decrypt, encrypt} from "@/algorithms/crypto";
+import {API_ENDPOINTS, getEndPoint} from "@/constants/api.endpoint";
+import {ELOCAL_STORAGE, REQUEST_METHODS} from "@/constants/api.enum";
+import {LoginResponseType} from "@/types/auth.type";
+import {useMutation, UseMutationResult, useQuery, UseQueryResult} from "@tanstack/react-query";
+import axios, {AxiosError, AxiosRequestConfig} from "axios";
+import {toast} from "sonner";
+import {CONFIG} from "@/config/config.ts";
 
 const getAuthToken = (): string | null => {
     try {
@@ -42,8 +38,10 @@ const writeCredentials = (credentials: LoginResponseType) => {
     }
 };
 
+
+
 const axiosInstance = axios.create({
-    baseURL: BASE_URL,
+    baseURL: CONFIG.BASE_URL,
     headers: {
         Accept: "application/json",
         "Content-Type": "application/json"
@@ -60,16 +58,38 @@ axiosInstance.interceptors.request.use((config) => {
 
 axiosInstance.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
         if (error.response?.status === 401) {
             const auth = readCredentials();
-            const { data, isLoading, isError } = useApiQuery(
-                API_ENDPOINTS.REFRESH_ENDPOINT,
-                { refresh_token: auth.refresh_token }
-            );
-            if (!data && !isLoading && isError)
+            if (!auth?.refresh_token) {
                 localStorage.removeItem(ELOCAL_STORAGE.AUTH_STORE);
+                return Promise.reject(error);
+            }
+
+            try {
+                // ✅ Call refresh token API manually
+                const refreshResponse = await axios.post(API_ENDPOINTS.REFRESH_ENDPOINT, {
+                    refresh_token: auth.refresh_token
+                });
+
+                const newAccessToken = refreshResponse.data.access_token;
+
+                // ✅ Store new token
+                localStorage.setItem(ELOCAL_STORAGE.AUTH_STORE, JSON.stringify({
+                    ...auth,
+                    access_token: newAccessToken
+                }));
+
+                // ✅ Retry the original request with new token
+                error.config.headers["Authorization"] = `Bearer ${newAccessToken}`;
+                return axiosInstance.request(error.config);
+            } catch (refreshError) {
+                // ❌ Refresh failed, remove credentials
+                localStorage.removeItem(ELOCAL_STORAGE.AUTH_STORE);
+                return Promise.reject(refreshError);
+            }
         }
+
         return Promise.reject(error);
     }
 );
@@ -117,7 +137,7 @@ const useApiQuery = <TResponse>(
     endpoint: API_ENDPOINTS,
     pathParams?: Record<string, string>,
     queryParams?: Record<string, unknown>,
-    requiresAuth: boolean = false
+    requiresAuth: boolean = true
 ): UseQueryResult<TResponse, AxiosError> => {
     return useQuery({
         queryKey: [endpoint, pathParams, queryParams],
@@ -153,4 +173,4 @@ const useApiMutation = <TRequest, TResponse>(
     });
 };
 
-export { useApiMutation, useApiQuery, writeCredentials, readCredentials };
+export { useApiMutation, useApiQuery, writeCredentials, readCredentials,apiRequest };

@@ -17,11 +17,13 @@ import {
 import { useApiMutation, writeCredentials } from "@/hooks/useApiService";
 import { API_ENDPOINTS } from "@/constants/api.endpoint";
 import { REQUEST_METHODS } from "@/constants/api.enum";
-import { LoginRequestType, LoginResponseType } from "@/types/auth.type";
+import {AuthType, LoginRequestType, LoginResponseType} from "@/types/auth.type";
 import { appname } from "@/constants/company.const";
+import {useAuthContext} from "@/hooks/useAuthContext.ts";
 
 const FormComponent = () => {
     const navigate = useNavigate();
+    const auth:AuthType = useAuthContext();
     const form = useForm<z.infer<typeof LoginFormSchema>>({
         resolver: zodResolver(LoginFormSchema)
     });
@@ -36,6 +38,10 @@ const FormComponent = () => {
         mutate(values, {
             onSuccess: response => {
                 writeCredentials(response);
+                auth.setUser({"username":response.username,"fullname":response.fullname});
+                auth.setAccessToken(response.accessToken);
+                auth.setRefreshToken(response.refreshToken);
+                navigate("/home/chat");
             }
         });
     };

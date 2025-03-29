@@ -2,7 +2,10 @@
 
 
 
-
+type FileResponseType = {
+    message:string,
+    result:string,
+}
 
 type MessageType = {
     question:string,
@@ -15,7 +18,14 @@ type MyChatProps = {
 }
 
 
+type GenerateSummarizationProps = {
+    wskey:string
+}
+
+
 export type{
     MyChatProps,
     MessageType,
+    FileResponseType,
+    GenerateSummarizationProps
 }

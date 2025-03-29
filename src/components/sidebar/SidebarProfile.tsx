@@ -23,6 +23,11 @@ import {
     SidebarMenuItem,
     useSidebar
 } from "@/components/ui/sidebar";
+import {API_ENDPOINTS} from "@/constants/api.endpoint.ts";
+import {REQUEST_METHODS} from "@/constants/api.enum.ts";
+import {useApiMutation} from "@/hooks/useApiService.ts";
+import {useAuthContext} from "@/hooks/useAuthContext.ts";
+import {useNavigate} from "react-router-dom";
 
 export function SidebarProfile({
                                    profile
@@ -33,6 +38,21 @@ export function SidebarProfile({
     };
 }) {
     const { isMobile } = useSidebar();
+    const auth = useAuthContext();
+    const {mutate} = useApiMutation(API_ENDPOINTS.SIGNOUT_ENDPOINT,REQUEST_METHODS.POST,undefined,{"user_id":auth.user?.username});
+    const navigate = useNavigate();
+
+    const handleSignOut = () => {
+        mutate({"sample_string":"This is a sample String"},{
+            onSuccess: () => {
+                console.log("Sign Out");
+                navigate("/login");
+            },
+            onError: (error) => {
+                console.log(error)
+            }
+        })
+    }
 
     return (
         <SidebarMenu>
@@ -103,7 +123,7 @@ export function SidebarProfile({
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSignOut}>
                             <LogOut />
                             Log out
                         </DropdownMenuItem>
