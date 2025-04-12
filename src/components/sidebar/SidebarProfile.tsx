@@ -46,7 +46,7 @@ export function SidebarProfile({
         mutate({"sample_string":"This is a sample String"},{
             onSuccess: () => {
                 console.log("Sign Out");
-                navigate("/login");
+                navigate("/");
             },
             onError: (error) => {
                 console.log(error)

@@ -6,31 +6,30 @@ import {
 import {
     SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuAction, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar"
-import {IconType} from "react-icons/lib"
+// import {IconType} from "react-icons/lib"
 import {Button} from "../ui/button"
-import {useNavigate} from "react-router-dom"
+import {useChatContext} from "@/hooks/useChatContext.ts";
+// import {useNavigate} from "react-router-dom"
 
 export function SidebarUtilities({
                                      utilities, title
                                  }: {
-    utilities: {
-        title: string
-        url: string
-        icon: IconType
-    }[], title: string
+    utilities: string[][], title: string
 }) {
+    const chat = useChatContext()
     const {isMobile} = useSidebar();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     return (<SidebarGroup className="group-data-[collapsible=icon]:hidden">
         <SidebarGroupLabel>{title}</SidebarGroupLabel>
         <SidebarMenu className="pt-5">
-            {utilities.map((item) => (<SidebarMenuItem key={item.title} className="flex justify-center">
+            {utilities.map((item) => (<SidebarMenuItem key={item[1]} className="flex justify-center">
                 <SidebarMenuButton asChild>
                     <Button variant={'ghost'} className="justify-start cursor-pointer py-5"
-                            onClick={() => navigate(item.url)}>
+                            onClick={() => chat.setCurrentChat(item[1])}
+                            >
                         <div>
-                            <h1>{item.title}</h1>
+                            <h1>{item[2]}</h1>
                         </div>
                     </Button>
                 </SidebarMenuButton>

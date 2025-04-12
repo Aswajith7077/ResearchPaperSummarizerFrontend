@@ -9,11 +9,18 @@ import {CONFIG} from "@/config/config.ts";
 const enum API_ENDPOINTS {
     REFRESH_ENDPOINT = `auth/refresh`,
 
+    TODAY_ENDPOINT = `history/today/{user_id}`,
+    YESTERDAY_ENDPOINT = `history/yesterday/{user_id}`,
+    ALL_ENDPOINT = `history/all/{user_id}`,
+
     LOGIN_ENDPOINT = `auth/login`,
     SIGNIN_ENDPOINT = `users/create_user`,
     SIGNOUT_ENDPOINT = `auth/signout`,
 
-    FILE_ENDPOINT = `reviewer/upload_files`,
+    GET_HISTORY_ENDPOINT = `history/get_history`,
+
+    FILE_ENDPOINT = `reviewer/upload_files/{user_id}`,
+
     ASK_QUESTION_ENDPOINT = `reviewer/add_question`,
 
 

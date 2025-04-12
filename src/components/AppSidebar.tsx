@@ -6,12 +6,34 @@ import {SidebarProfile} from '@/components/sidebar/SidebarProfile';
 import {useAuthContext} from '@/hooks/useAuthContext';
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
 import {appname} from "@/constants/company.const.ts";
+import {useApiQuery} from "@/hooks/useApiService.ts";
+import {API_ENDPOINTS} from "@/constants/api.endpoint.ts";
+import {useEffect} from "react";
 
 
 const AppSidebar = () => {
     document.body.classList.add('dark');
     const auth = useAuthContext();
     console.log(auth);
+
+
+    const today = useApiQuery<string[][]>(API_ENDPOINTS.TODAY_ENDPOINT,{"user_id":auth.user ? auth.user.username : ""},undefined,true);
+    const yesterday = useApiQuery<string[][]>(API_ENDPOINTS.YESTERDAY_ENDPOINT,{"user_id":auth.user ? auth.user.username : ""},undefined,true);
+    const all_history = useApiQuery<string[][]>(API_ENDPOINTS.ALL_ENDPOINT,{"user_id":auth.user ? auth.user.username : ""},undefined,true);
+
+
+    useEffect(() => {
+        console.log(today.data);
+    }, [today.data]);
+
+    useEffect(() => {
+        console.log(yesterday.data);
+    }, [yesterday.data]);
+
+    useEffect(() => {
+        console.log(all_history.data);
+    }, [all_history.data]);
+
 
     return <Sidebar className=" border-none ">
         <SidebarHeader className="">
@@ -22,9 +44,9 @@ const AppSidebar = () => {
 
         <SidebarContent className="py-2">
             <ScrollArea className={'overflow-y-auto '}>
-                <SidebarUtilities utilities={sidebar_data.sidebar_utilities.slice(0,2)} title={'Today'}/>
-                <SidebarUtilities utilities={sidebar_data.sidebar_utilities.slice(0,7)} title={'Yesterday'}/>
-                <SidebarUtilities utilities={sidebar_data.sidebar_utilities} title={'History'}/>
+                <SidebarUtilities utilities={today.data ? today.data : [[]]} title={'Today'}/>
+                <SidebarUtilities utilities={yesterday.data ? yesterday.data : [[]]} title={'Yesterday'}/>
+                <SidebarUtilities utilities={all_history.data ? all_history.data : [[]]} title={'History'}/>
             </ScrollArea>
         </SidebarContent>
 

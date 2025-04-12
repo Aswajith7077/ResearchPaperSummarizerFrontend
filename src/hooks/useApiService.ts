@@ -18,11 +18,14 @@ const getAuthToken = (): string | null => {
 };
 
 const readCredentials = () => {
+    console.log("Read Credentials");
     try {
         const authStorage = localStorage.getItem(ELOCAL_STORAGE.AUTH_STORE) ?? "";
         const { state } = JSON.parse(decrypt(authStorage));
+        console.log(state)
         return state;
     } catch (e) {
+        console.log("Error")
         return null;
     }
 };
@@ -31,13 +34,15 @@ const writeCredentials = (credentials: LoginResponseType) => {
     try {
         const serialized_data = encrypt(JSON.stringify({ state: credentials }));
         localStorage.setItem(ELOCAL_STORAGE.AUTH_STORE, serialized_data);
+        console.log("Event Triggered Api Service");
+        // Use CustomEvent instead of Event
+        window.dispatchEvent(new CustomEvent("credentialsChanged"));
         return true;
     } catch (e) {
         toast("Error in Writing text");
         return false;
     }
 };
-
 
 
 const axiosInstance = axios.create({
@@ -67,24 +72,23 @@ axiosInstance.interceptors.response.use(
             }
 
             try {
-                // ✅ Call refresh token API manually
+
                 const refreshResponse = await axios.post(API_ENDPOINTS.REFRESH_ENDPOINT, {
                     refresh_token: auth.refresh_token
                 });
 
                 const newAccessToken = refreshResponse.data.access_token;
 
-                // ✅ Store new token
                 localStorage.setItem(ELOCAL_STORAGE.AUTH_STORE, JSON.stringify({
                     ...auth,
                     access_token: newAccessToken
                 }));
 
-                // ✅ Retry the original request with new token
+
                 error.config.headers["Authorization"] = `Bearer ${newAccessToken}`;
                 return axiosInstance.request(error.config);
             } catch (refreshError) {
-                // ❌ Refresh failed, remove credentials
+
                 localStorage.removeItem(ELOCAL_STORAGE.AUTH_STORE);
                 return Promise.reject(refreshError);
             }
@@ -117,8 +121,9 @@ const apiRequest = async <TRequest = unknown, TResponse = unknown>(
 
     if (pathParams) {
         Object.keys(pathParams).forEach((key) => {
-            url = url.replace(`:${key}`, encodeURIComponent(pathParams[key]));
+            url = url.replace(`{${key}}`, encodeURIComponent(pathParams[key]));
         });
+        console.log(url);
     }
 
     const config: AxiosRequestConfig = {

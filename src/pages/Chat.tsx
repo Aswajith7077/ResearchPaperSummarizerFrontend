@@ -1,7 +1,7 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {FileUpload} from "@/components/ui/file-upload.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {useApiMutation} from "@/hooks/useApiService.ts";
+import {useApiMutation, useApiQuery,} from "@/hooks/useApiService.ts";
 import {API_ENDPOINTS} from "@/constants/api.endpoint.ts";
 import {REQUEST_METHODS} from "@/constants/api.enum.ts";
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
@@ -11,15 +11,28 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
+import {useAuthContext} from "@/hooks/useAuthContext.ts";
+import {useChatContext} from "@/hooks/useChatContext.ts";
 
 
 const Chat = () => {
 
     const [file, setFile] = useState<File[]>([]);
+    const chat = useChatContext();
 
     const [md, setMd] = useState<string>("");
+    const auth = useAuthContext();
 
-    const file_handler = useApiMutation<FormData, FileResponseType>(API_ENDPOINTS.FILE_ENDPOINT, REQUEST_METHODS.POST);
+    const current_chat = useApiQuery<string>(API_ENDPOINTS.GET_HISTORY_ENDPOINT,undefined,{"id":chat.currentChat},true);
+    const file_handler = useApiMutation<FormData, FileResponseType>(API_ENDPOINTS.FILE_ENDPOINT, REQUEST_METHODS.POST,{"user_id":auth.user ? auth.user.username:""});
+
+    console.log(chat.currentChat);
+    useEffect(() => {
+        setMd(prev => current_chat.data ? current_chat.data:prev);
+    },[current_chat.data]);
+
+
+
 
 
     const handleFileChange = (files: File[]) => {
