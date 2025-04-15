@@ -1,6 +1,6 @@
 
 
-const appname:string = "CIDAR";
+const appname:string = "Scholr";
 export{
     appname
 }

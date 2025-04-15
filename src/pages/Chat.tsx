@@ -9,19 +9,22 @@ import {toast, Toaster} from "sonner";
 import {FileResponseType} from "@/types/api/chat.type.ts";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
 import {useAuthContext} from "@/hooks/useAuthContext.ts";
 import {useChatContext} from "@/hooks/useChatContext.ts";
 
 
+
+
 const Chat = () => {
 
     const [file, setFile] = useState<File[]>([]);
     const chat = useChatContext();
-
-    const [md, setMd] = useState<string>("");
     const auth = useAuthContext();
+    const [md, setMd] = useState<string>("");
+
 
     const current_chat = useApiQuery<string>(API_ENDPOINTS.GET_HISTORY_ENDPOINT,undefined,{"id":chat.currentChat},true);
     const file_handler = useApiMutation<FormData, FileResponseType>(API_ENDPOINTS.FILE_ENDPOINT, REQUEST_METHODS.POST,{"user_id":auth.user ? auth.user.username:""});
@@ -60,7 +63,7 @@ const Chat = () => {
                     <div className={'prose max-w-none'}>
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[rehypeHighlight]}
+                            rehypePlugins={[rehypeRaw, rehypeHighlight]}
                             components={{
                                 h1: ({ node, ...props }) => (
                                     <h1

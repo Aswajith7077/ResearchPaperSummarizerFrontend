@@ -1,6 +1,8 @@
 import {Button} from "@/components/ui/button.tsx";
 import {motion} from "framer-motion";
+
 import {useNavigate} from "react-router-dom";
+import {appname} from "@/constants/company.const.ts";
 
 
 const App = () => {
@@ -10,7 +12,7 @@ const App = () => {
     document.body.classList.add("dark");
     return <main className={'flex flex-col items-center justify-between p-10 w-screen h-screen'}>
         <div className={'flex flex-row w-full px-20 justify-between'}>
-            <h1 className={'font-semibold text-4xl'}>CIDAR</h1>
+            <h1 className={'font-semibold text-4xl'}>{appname}</h1>
             <section className={'flex flex-row gap-5'}>
                 <Button variant={'default'} className={'border py-5 px-6 cursor-pointer'} onClick={() => navigate('/login')}>
                     Login
